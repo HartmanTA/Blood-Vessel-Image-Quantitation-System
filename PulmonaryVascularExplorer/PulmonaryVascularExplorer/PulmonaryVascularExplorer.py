@@ -362,20 +362,20 @@ class PulmonaryVascularExplorerLogic(ScriptedLoadableModuleLogic):
                 endPointsMarkupsNode.AddControlPoint(thisSandE[1])
                 endPointsMarkupsNode.SetNthControlPointSelected (0, 1 == 1)
                 networkPolyData = extractLogic.extractNetwork(preprocessedPolyData, endPointsMarkupsNode)
-                startPointPosition = None
+                startPointPosition = thisSandE[0]
                 endpointPositions = extractLogic.getEndPoints(networkPolyData, startPointPosition)
                 endPointsMarkupsNode.RemoveAllControlPoints()
                 for position in endpointPositions:
                     endPointsMarkupsNode.AddControlPoint(vtk.vtkVector3d(position))
             
              # Extract the centerline
-                centerlineCurveNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsCurveNode", "Centerline curve")
+                centerlineCurveNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsCurveNode", "Centerline curve " + seg)
                 centerlinePolyData, voronoiDiagramPolyData = extractLogic.extractCenterline(preprocessedPolyData, endPointsMarkupsNode)
-                centerlinePropertiesTableNode = None
+                centerlinePropertiesTableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode", "Centerline Table " + seg)
                 extractLogic.createCurveTreeFromCenterline(centerlinePolyData, centerlineCurveNode, centerlinePropertiesTableNode)
                 i += 1
             except:
-                print("I made a mistake")
+                print("Error occured while processing segment named: " + seg)
                 i += 1
                 continue
 
