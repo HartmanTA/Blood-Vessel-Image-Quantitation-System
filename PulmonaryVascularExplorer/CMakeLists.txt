@@ -6,7 +6,7 @@ project(PulmonaryVascularExplorer)
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/PulmonaryVascularExplorer")
 set(EXTENSION_CATEGORY "PulmonaryVascularExplorer")
-set(EXTENSION_CONTRIBUTORS "Aaron McClellan (College of Charleston), Hugo Bachaumard (College of Charleston), Tyler Hartman (College of Charleston), Dr. Alex Brummer (Physics & Astronomy @ College of Charleston)")
+set(EXTENSION_CONTRIBUTORS "John Doe (AnyWare Corp.)")
 set(EXTENSION_DESCRIPTION "This is an example of a simple extension")
 set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/PulmonaryVascularExplorer.png")
 set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/PulmonaryVascularExplorer/Screenshots/1.png")
