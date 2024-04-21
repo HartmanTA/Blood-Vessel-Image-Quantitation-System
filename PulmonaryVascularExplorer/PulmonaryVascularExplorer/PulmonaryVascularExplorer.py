@@ -282,28 +282,31 @@ class PulmonaryVascularExplorerLogic(ScriptedLoadableModuleLogic):
         return PulmonaryVascularExplorerParameterNode(super().getParameterNode())
 
     
-    def vesselFinder(self, inputVolumeAsArray):
-        
-        nonZeroes = np.nonzero(inputVolumeAsArray)
-        visited = np.zeros_like(inputVolumeAsArray, dtype=int)
-        nzLen = len(nonZeroes[0])
-        v = 1
-        for t in range(nzLen-1):
-            if not visited[nonZeroes[0][t]][nonZeroes[1][t]][nonZeroes[2][t]]:
-                currentVal = inputVolumeAsArray[nonZeroes[0][t]][nonZeroes[1][t]][nonZeroes[2][t]]
-                currentPoint = [(nonZeroes[0][t], nonZeroes[1][t], nonZeroes[2][t])]
-                while currentPoint:
-                    depth, row, col = currentPoint.pop()
-                    if (0 <= depth < len(inputVolumeAsArray) and
-                        0 <= row < len(inputVolumeAsArray[0]) and 
-                        0 <= col < len(inputVolumeAsArray[0][0]) and 
-                        not (visited[depth][row][col] > 0) and
-                        (inputVolumeAsArray[depth][row][col] == currentVal)):
-                        visited[depth][row][col] = v
-                        currentPoint.extend([(depth + dd, row + dr, col + dc) for dd, dr, dc in [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]])
-                v += 1
-        
-        return visited
+    def vesselFinder(volumeNode):
+    matrix = slicer.util.arrayFromVolume(volumeNode)
+    nonZeroes = np.nonzero(matrix)
+    visited = np.zeros_like(matrix, dtype=int)
+    nzLen = len(nonZeroes[0])
+    v = 1
+    for t in range(nzLen-1):
+        if not visited[nonZeroes[0][t]][nonZeroes[1][t]][nonZeroes[2][t]]:
+            currentVal = matrix[nonZeroes[0][t]][nonZeroes[1][t]][nonZeroes[2][t]]
+            currentPoint = [(nonZeroes[0][t], nonZeroes[1][t], nonZeroes[2][t])]
+            while currentPoint:
+                depth, row, col = currentPoint.pop()
+                if (0 <= depth < len(matrix) and
+                    0 <= row < len(matrix[0]) and 
+                    0 <= col < len(matrix[0][0]) and 
+                    not (visited[depth][row][col] > 0) and
+                    (matrix[depth][row][col] == currentVal)):
+                    visited[depth][row][col] = v
+                    currentPoint.extend([(depth + dd, row + dr, col + dc) for dd, dr, dc in [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]])
+            v += 1
+    for t in range(v-1):
+        cou = np.count_nonzero(visited == t)
+        if (cou < 50):
+            visited[visited == t] = 0
+    return visited
     
     def batchSaE(self, labelMap, centroid):
         saeSet = list()
