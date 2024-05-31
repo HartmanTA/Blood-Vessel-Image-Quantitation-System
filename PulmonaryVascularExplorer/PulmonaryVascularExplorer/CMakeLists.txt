@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME PulmonaryVascularExplorer)
+set(MODULE_NAME lungVesselSeg)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS

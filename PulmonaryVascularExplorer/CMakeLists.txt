@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.16.3...3.19.7 FATAL_ERROR)
 
-project(PulmonaryVascularExplorer)
+project(AutoVesselSegment)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
-set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/PulmonaryVascularExplorer")
-set(EXTENSION_CATEGORY "PulmonaryVascularExplorer")
-set(EXTENSION_CONTRIBUTORS "John Doe (AnyWare Corp.)")
-set(EXTENSION_DESCRIPTION "This is an example of a simple extension")
-set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/PulmonaryVascularExplorer.png")
-set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/PulmonaryVascularExplorer/Screenshots/1.png")
+set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/AutoVesselSegment")
+set(EXTENSION_CATEGORY "Examples")
+set(EXTENSION_CONTRIBUTORS "Aaron McClellan (College of Charleston), Tyler Hartman, Hugo Bachaumard")
+set(EXTENSION_DESCRIPTION "Automatically map blood vessel tree of the lungs.")
+set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/AutoVesselSegment.png")
+set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/AutoVesselSegment/Screenshots/1.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a list or "NA" if no dependencies
 
 #-----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ include(${Slicer_USE_FILE})
 
 #-----------------------------------------------------------------------------
 # Extension modules
-add_subdirectory(PulmonaryVascularExplorer)
+add_subdirectory(lungVesselSeg)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
