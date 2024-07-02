@@ -19,7 +19,7 @@ include(${Slicer_USE_FILE})
 
 #-----------------------------------------------------------------------------
 # Extension modules
-add_subdirectory(lungVesselSeg)
+add_subdirectory(PulmoVascular Extraction)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
