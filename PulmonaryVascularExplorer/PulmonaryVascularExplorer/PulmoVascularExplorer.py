@@ -241,7 +241,8 @@ class PulmoVascularExplorerWidget(ScriptedLoadableModuleWidget, VTKObservationMi
         with slicer.util.tryWithErrorDisplay(_("Failed to compute results."), waitCursor=True):
             # Compute output
             self.logic.process(self.ui.inputSelector.currentNode(), self.ui.decimationSlider.value, 
-                               self.ui.numOfPointsSpinBox.value, self.ui.subDivideInputSurfaceCheckBox.checked)
+                               self.ui.numOfPointsSpinBox.value, self.ui.subDivideInputSurfaceCheckBox.checked,
+                               self.ui.makeTables.checked, self.ui.createModels.checked, self.ui.MinVesselSize.value)
 
     def onBatchProcessButton(self) -> None:
         """Run processing when user clicks "Apply" button."""
@@ -485,7 +486,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
     
     
     
-    def vesselFinder(self, inputVolumeAsArray):
+    def vesselFinder(self, inputVolumeAsArray, minVesselSize):
         import numpy as np
         nonZeroes = np.nonzero(inputVolumeAsArray)
         visited = np.zeros_like(inputVolumeAsArray, dtype=int)
@@ -505,7 +506,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
                         visited[depth][row][col] = v
                         currentPoint.extend([(depth + dd, row + dr, col + dc) for dd, dr, dc in [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]])
                 cou = np.count_nonzero(visited == v)
-                if (cou < 50):
+                if (cou < minVesselSize):
                     visited[visited == t] = 0
                 else:
                     v += 1
@@ -543,7 +544,8 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
     def findAllCenterlines(self, labelMap, subdivideInputSurface, centroid, decimationAggressiveness, targetNumberOfPoints, makeTables, makeModels):
         import ExtractCenterline
         extractLogic = ExtractCenterline.ExtractCenterlineLogic()
-        
+        centerlineCurveNode = None
+        centerlinePropertiesTableNode = None
         segVol = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLabelMapVolumeNode")
         slicer.util.updateVolumeFromArray(segVol, labelMap)
         segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
@@ -593,7 +595,8 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
                 targetNumberOfPoints: float,
                 subdivideInputSurface: bool = False,
                 makeTables: bool = True,
-                makeModels: bool = True) -> None:
+                makeModels: bool = True,
+                minVesselSize: float = 3) -> None:
         """
         Run the processing algorithm.
         Can be used without GUI widget.
@@ -609,7 +612,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
 
         #perform processing
         inputVolumeAsArray = slicer.util.arrayFromVolume(inputVolume)
-        self.findAllCenterlines(self.vesselFinder(inputVolumeAsArray), subdivideInputSurface, self.centroidFinder(inputVolumeAsArray), decimationAggressiveness, targetNumberOfPoints, makeTables, makeModels)
+        self.findAllCenterlines(self.vesselFinder(inputVolumeAsArray, minVesselSize), subdivideInputSurface, self.centroidFinder(inputVolumeAsArray), decimationAggressiveness, targetNumberOfPoints, makeTables, makeModels)
         processAllCenterlineTables()
         
 
