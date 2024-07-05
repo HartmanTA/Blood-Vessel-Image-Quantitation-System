@@ -148,7 +148,7 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="createModels">
         <property name="text">
          <string/>
         </property>
@@ -180,7 +180,7 @@
        </widget>
       </item>
       <item row="6" column="1">
-       <widget class="qMRMLLinearTransformSlider" name="MRMLLinearTransformSlider">
+       <widget class="qMRMLLinearTransformSlider" name="MinVesselSize">
         <property name="decimals">
          <number>0</number>
         </property>
