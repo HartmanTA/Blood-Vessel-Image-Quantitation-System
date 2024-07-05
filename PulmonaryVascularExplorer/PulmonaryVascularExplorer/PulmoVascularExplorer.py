@@ -33,19 +33,18 @@ class PulmoVascularExplorer(ScriptedLoadableModule):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = _("PulmoVascularExplorer")  
         # TODO: set categories (folders where the module shows up in the module selector)
-        self.parent.categories = [translate("qSlicerAbstractCoreModule", "Automated Vessel Extraction")]#TODO figure out way to give the extension its own section in the 3d slicer dropdown
+        self.parent.categories = [translate("qSlicerAbstractCoreModule", "PulmonaryVascularExplorer")]#TODO figure out way to give the extension its own section in the 3d slicer dropdown
         self.parent.dependencies = []  #TODO figure out how to make it a requirement that VMTK is a downloaded extension before code will run
         self.parent.contributors = ["Hugo Bachaumard, Tyler Hartman, Aaron McCelllan (College of Charleston)"] 
         # TODO: update with short description of the module and a link to online module documentation
         # _() function marks text as translatable to other languages
         self.parent.helpText = _("""
-This is an example of scripted loadable module bundled in an extension.
-See more information in <a href="https://github.com/HartmanTA/Blood-Vessel-Image-Quantitation-System">module documentation</a>.
+This module is intended to aid in centerline
+extraction for blood vessels in the lungs
 """)
         # TODO: replace with organization, grant and thanks
         self.parent.acknowledgementText = _("""
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
+This module was developed by students at the College of Charleston Aaron McClellan, Hugo Bachaumard, and Tyler Hartman under the advisement of Dr. Brummer and uses the Vascular Modeling Toolkit in order to extract the centerline of each vessel tree
 """)
 
         # Additional initialization step after application startup is complete
@@ -252,7 +251,8 @@ class PulmoVascularExplorerWidget(ScriptedLoadableModuleWidget, VTKObservationMi
 
             # Compute output on all volumes loaded in scene
             self.logic.processAll(listOfSceneVolumes, self.ui.decimationSlider.value, 
-                               self.ui.numOfPointsSpinBox.value, self.ui.subDivideInputSurfaceCheckBox.checked)
+                               self.ui.numOfPointsSpinBox.value, self.ui.subDivideInputSurfaceCheckBox.checked,
+                               self.ui.makeTables.checked, self.ui.createModels.checked, self.ui.MinVesselSize.value)
     
 
 
@@ -489,7 +489,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
     def vesselFinder(self, inputVolumeAsArray, minVesselSize):
         import numpy as np
         nonZeroes = np.nonzero(inputVolumeAsArray)
-        visited = np.zeros_like(inputVolumeAsArray, dtype=int)
+        visited = np.zeros_like(inputVolumeAsArray, dtype=float)
         nzLen = len(nonZeroes[0])
         v = 1
         for t in range(nzLen-1):
@@ -554,6 +554,8 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
         startsAndEnds = []
         startsAndEnds = self.batchSaE(labelMap, centroid)
         i = 0
+        if not (makeTables and makeModels):
+            return
         while (i < len(a)):
         #  for seg in a:
             try:
@@ -618,12 +620,16 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
 
         stopTime = time.time()
         logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
+        print(f"Processing completed in {stopTime-startTime:.2f} seconds")
 #processAll errors if computer runs out of memory
     def processAll(self,
-                allInputVolumes: vtkMRMLScalarVolumeNode,
+                allInputVolumes,
                 decimationAggressiveness: float,
                 targetNumberOfPoints: float,
-                subdivideInputSurface: bool = False) -> None:
+                subdivideInputSurface: bool = False,
+                makeTables: bool = True,
+                makeModels: bool = True,
+                minVesselSize: float = 3) -> None:
         """
         Run the processing algorithm.
         Can be used without GUI widget.
@@ -636,10 +642,10 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
 
         startTime = time.time()
         logging.info("Processing started")
-
-        for x in allInputVolumes:
-            inputVolumeAsArray = slicer.util.arrayFromVolume(x)
-            self.findAllCenterlines(self.vesselFinder(inputVolumeAsArray), subdivideInputSurface, self.centroidFinder(inputVolumeAsArray), decimationAggressiveness, targetNumberOfPoints, True, False)
+        if allInputVolumes:
+            for x in allInputVolumes:
+                inputVolumeAsArray = slicer.util.arrayFromVolume(x)
+                self.findAllCenterlines(self.vesselFinder(inputVolumeAsArray, minVesselSize), subdivideInputSurface, self.centroidFinder(inputVolumeAsArray), decimationAggressiveness, targetNumberOfPoints, makeTables, makeModels)
 
         #perform processing
         
