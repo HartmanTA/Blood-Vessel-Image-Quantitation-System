@@ -582,6 +582,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
              # Extract the centerline
                 if makeModels:
                     centerlineCurveNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsCurveNode", "Centerline_curve_" + str(i + 1))
+                    centerlineCurveNode.GetDisplayNode().SetVisibility(False)
                 centerlinePolyData, voronoiDiagramPolyData = extractLogic.extractCenterline(preprocessedPolyData, endPointsMarkupsNode)
                 if makeTables:
                     centerlinePropertiesTableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode", "Centerline_Table_Label_" + str(i + 1))
