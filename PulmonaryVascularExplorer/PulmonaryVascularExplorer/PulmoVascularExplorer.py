@@ -319,7 +319,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
         vtkTable = tableNode.GetTable()
         rowCount = vtkTable.GetNumberOfRows()
         childrenColumnIndex = vtkTable.GetColumnIndex("Children")
-        calculate_horton_strahler_number(vtkTable, rowCount, childrenColumnIndex)
+        self.calculate_horton_strahler_number(vtkTable, rowCount, childrenColumnIndex)
         tableNode.Modified()  # Notify the system that the table has been updated
 
     def updateTableWithCoordinates(self, tableNode):
@@ -475,9 +475,9 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
 
         while tableNode:
             if "Centerline_Table_Label_" in tableNode.GetName():
-                updateTableWithCoordinates(tableNode)
-                check_asymmetry_by_max_features(tableNode)
-                updateTableWithHortonStrahlerNumbers(tableNode)
+                self.updateTableWithCoordinates(tableNode)
+                self.check_asymmetry_by_max_features(tableNode)
+                self.updateTableWithHortonStrahlerNumbers(tableNode)
                 tableNode.Modified()  # Notify the system that the table has been updated
             tableNode = tableNodes.GetNextItemAsObject()
         consolidateTablesIntoMaster()
@@ -615,7 +615,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
         #perform processing
         inputVolumeAsArray = slicer.util.arrayFromVolume(inputVolume)
         self.findAllCenterlines(self.vesselFinder(inputVolumeAsArray, minVesselSize), subdivideInputSurface, self.centroidFinder(inputVolumeAsArray), decimationAggressiveness, targetNumberOfPoints, makeTables, makeModels)
-        processAllCenterlineTables()
+        self.processAllCenterlineTables()
         
 
         stopTime = time.time()
