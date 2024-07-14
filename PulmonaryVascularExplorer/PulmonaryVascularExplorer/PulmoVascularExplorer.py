@@ -480,7 +480,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
                 self.updateTableWithHortonStrahlerNumbers(tableNode)
                 tableNode.Modified()  # Notify the system that the table has been updated
             tableNode = tableNodes.GetNextItemAsObject()
-        consolidateTablesIntoMaster()
+        self.consolidateTablesIntoMaster()
 
     
     
