@@ -282,45 +282,93 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
         return PulmoVascularExplorerParameterNode(super().getParameterNode())
 
     
-    def calculate_horton_strahler_number(self, vtkTable, rowCount, childrenColumnIndex):
-        """Calculate Horton-Strahler number for each node."""
+    def computeAndPlaceHSN(self, tableNode):
+        vTable = tableNode.GetTable()
+        rowCount = vTable.GetNumberOfRows()
         hsnColumn = vtk.vtkIntArray()
         hsnColumn.SetName("HortonStrahlerNumber")
         hsnColumn.SetNumberOfTuples(rowCount)
-        vtkTable.AddColumn(hsnColumn)
+        vTable.AddColumn(hsnColumn)   
+        parentColumn = vTable.GetColumnIndex("Parent")
+        calcNodes = []
+        cellIdToIndex = {vTable.GetValue(rowIndex, 0).ToString(): rowIndex for rowIndex in range(rowCount)}
+        for i in range(rowCount):
+            if ("No" == vTable.GetValueByName(i, "Parent")):
+                hsnColumn.SetValue(i, 1)
+                calcNodes.append((i, vTable.GetValueByName(i, "ParentCellId")))
+        def getSharedParentID(par):
+            retArr = []
+            for each in calcNodes:
+                if par == each[1]:
+                    retArr.append(each)
+            return retArr
         
-        cellIdToIndex = {vtkTable.GetValue(rowIndex, 0).ToString(): rowIndex for rowIndex in range(rowCount)}
-        
-        def compute_hsn(selfcellId):
-            rowIndex = cellIdToIndex[cellId]
-            childrenString = vtkTable.GetValue(rowIndex, childrenColumnIndex).ToString()
-            
-            if childrenString == "None":
-                return 1  # Leaf node
-            
-            childrenIds = childrenString.split(" and ")
-            childHSNs = [compute_hsn(childId) for childId in childrenIds]
-            
-            if not childHSNs:
-                return 1
-            
-            max_hsn = max(childHSNs)
-            if childHSNs.count(max_hsn) > 1:
-                return max_hsn + 1
-            return max_hsn
+        while calcNodes:
+            sharedParArray = []
+            id, par = calcNodes.pop(0)
+            sharedParArray = getSharedParentID(par)
+            sharedParArray.append((id, par))
+            top = 0
+            second = 0
+            if (len(sharedParArray) < 1):
+                calcNodes.append((id, par))
+                continue
+            for each in sharedParArray:
+                if vTable.GetValueByName(each[0], "HortonStrahlerNumber") > top:
+                    second = top
+                    top = vTable.GetValueByName(each[0], "HortonStrahlerNumber")
+                else:
+                    if vTable.GetValueByName(each[0], "HortonStrahlerNumber") > second:
+                        second = vTable.GetValueByName(each[0], "HortonStrahlerNumber")
+            if (top == second):
+                hsnColumn.SetValue(cellIdToIndex[par], top + 1)
+            else:
+                hsnColumn.SetValue(cellIdToIndex[par], top)
+            if (vTable.GetValueByName(cellIdToIndex[par], "ParentCellId") != "None"):
+                calcNodes.append(cellIdToIndex[par], vTable.GetValueByName(i, "ParentCellId"))
+        tableNode.Modified()
     
-        for rowIndex in range(rowCount):
-            cellId = vtkTable.GetValue(rowIndex, 0).ToString()
-            hsn = compute_hsn(cellId)
-            hsnColumn.SetValue(rowIndex, hsn)
+    
+    
+    # def calculate_horton_strahler_number(self, vtkTable, rowCount, childrenColumnIndex):
+        # """Calculate Horton-Strahler number for each node."""
+        # hsnColumn = vtk.vtkIntArray()
+        # hsnColumn.SetName("HortonStrahlerNumber")
+        # hsnColumn.SetNumberOfTuples(rowCount)
+        # vtkTable.AddColumn(hsnColumn)
+        
+        # cellIdToIndex = {vtkTable.GetValue(rowIndex, 0).ToString(): rowIndex for rowIndex in range(rowCount)}
+        
+        # def compute_hsn(selfcellId):
+            # rowIndex = cellIdToIndex[cellId]
+            # childrenString = vtkTable.GetValue(rowIndex, childrenColumnIndex).ToString()
+            
+            # if childrenString == "None":
+                # return 1  # Leaf node
+            
+            # childrenIds = childrenString.split(" and ")
+            # childHSNs = [compute_hsn(childId) for childId in childrenIds]
+            
+            # if not childHSNs:
+                # return 1
+            
+            # max_hsn = max(childHSNs)
+            # if childHSNs.count(max_hsn) > 1:
+                # return max_hsn + 1
+            # return max_hsn
+    
+        # for rowIndex in range(rowCount):
+            # cellId = vtkTable.GetValue(rowIndex, 0).ToString()
+            # hsn = compute_hsn(cellId)
+            # hsnColumn.SetValue(rowIndex, hsn)
 
-    def updateTableWithHortonStrahlerNumbers(self, tableNode):
-        """Add or update Horton-Strahler numbers in the given table."""
-        vtkTable = tableNode.GetTable()
-        rowCount = vtkTable.GetNumberOfRows()
-        childrenColumnIndex = vtkTable.GetColumnIndex("Children")
-        self.calculate_horton_strahler_number(vtkTable, rowCount, childrenColumnIndex)
-        tableNode.Modified()  # Notify the system that the table has been updated
+    # def updateTableWithHortonStrahlerNumbers(self, tableNode):
+        # """Add or update Horton-Strahler numbers in the given table."""
+        # vtkTable = tableNode.GetTable()
+        # rowCount = vtkTable.GetNumberOfRows()
+        # childrenColumnIndex = vtkTable.GetColumnIndex("Children")
+        # self.calculate_horton_strahler_number(vtkTable, rowCount, childrenColumnIndex)
+        # tableNode.Modified()  # Notify the system that the table has been updated
 
     def updateTableWithCoordinates(self, tableNode):
         """Populate the table with spatial and descriptive information about centerlines."""
@@ -477,7 +525,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
             if "Centerline_Table_Label_" in tableNode.GetName():
                 self.updateTableWithCoordinates(tableNode)
                 self.check_asymmetry_by_max_features(tableNode)
-                self.updateTableWithHortonStrahlerNumbers(tableNode)
+                #self.computeAndPlaceHSN(tableNode)
                 tableNode.Modified()  # Notify the system that the table has been updated
             tableNode = tableNodes.GetNextItemAsObject()
         self.consolidateTablesIntoMaster()
@@ -488,7 +536,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
     
     def vesselFinder(self, inputVolumeAsArray, minVesselSize):
         import numpy as np
-        nonZeroes = np.nonzero(inputVolumeAsArray)
+        nonZeroes = np.nonzero(inputVolumeAsArray != inputVolumeAsArray[0][0][0])  # Assume the origin corner is a null value
         visited = np.zeros_like(inputVolumeAsArray, dtype=int)
         nzLen = len(nonZeroes[0])
         v = 1
@@ -618,7 +666,8 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
         #perform processing
         inputVolumeAsArray = slicer.util.arrayFromVolume(inputVolume)
         self.findAllCenterlines(self.vesselFinder(inputVolumeAsArray, minVesselSize), subdivideInputSurface, self.centroidFinder(inputVolumeAsArray), decimationAggressiveness, targetNumberOfPoints, makeTables, makeModels)
-        self.processAllCenterlineTables()
+        if makeTables:
+            self.processAllCenterlineTables()
         
 
         stopTime = time.time()
