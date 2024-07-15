@@ -527,7 +527,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
             if "Centerline_Table_Label_" in tableNode.GetName():
                 self.updateTableWithCoordinates(tableNode)
                 self.check_asymmetry_by_max_features(tableNode)
-                self.computeAndPlaceHSN(tableNode)
+                # self.computeAndPlaceHSN(tableNode)
                 tableNode.Modified()  # Notify the system that the table has been updated
             tableNode = tableNodes.GetNextItemAsObject()
         self.consolidateTablesIntoMaster()
