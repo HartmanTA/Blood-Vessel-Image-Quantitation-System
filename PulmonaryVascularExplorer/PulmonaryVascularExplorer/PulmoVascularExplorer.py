@@ -320,10 +320,12 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
                 else:
                     if vTable.GetValueByName(each[0], "HortonStrahlerNumber") > second:
                         second = vTable.GetValueByName(each[0], "HortonStrahlerNumber")
+            
+            i = cellIdToIndex[par]
             if (top == second):
-                hsnColumn.SetValue(cellIdToIndex[par], top + 1)
+                vTable.SetValueByName(i, "HortonStrahlerNumber", top + 1)
             else:
-                hsnColumn.SetValue(cellIdToIndex[par], top)
+                vTable.SetValueByName(i, "HortonStrahlerNumber", top)
             if (vTable.GetValueByName(cellIdToIndex[par], "ParentCellId") != "None"):
                 calcNodes.append(cellIdToIndex[par], vTable.GetValueByName(i, "ParentCellId"))
         tableNode.Modified()
@@ -525,7 +527,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
             if "Centerline_Table_Label_" in tableNode.GetName():
                 self.updateTableWithCoordinates(tableNode)
                 self.check_asymmetry_by_max_features(tableNode)
-                #self.computeAndPlaceHSN(tableNode)
+                self.computeAndPlaceHSN(tableNode)
                 tableNode.Modified()  # Notify the system that the table has been updated
             tableNode = tableNodes.GetNextItemAsObject()
         self.consolidateTablesIntoMaster()
