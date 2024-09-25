@@ -539,7 +539,7 @@ class PulmoVascularExplorerLogic(ScriptedLoadableModuleLogic):
     def vesselFinder(self, inputVolumeAsArray, minVesselSize):
         import numpy as np
         nonZeroes = np.nonzero(inputVolumeAsArray != inputVolumeAsArray[0][0][0])  # Assume the origin corner is a null value
-        visited = np.zeros_like(inputVolumeAsArray, dtype=int)
+        visited = np.zeros_like(inputVolumeAsArray, dtype=float)
         nzLen = len(nonZeroes[0])
         v = 1
         for t in range(nzLen-1):
